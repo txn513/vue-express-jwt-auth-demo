@@ -1,0 +1,12 @@
+{
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "useBuiltIns": "usage"
+        }
+      ]
+    ],
+    "compact": false,
+    "plugins": ["@babel/plugin-syntax-dynamic-import"]
+  }
