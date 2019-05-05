@@ -26,6 +26,7 @@
 ### Implementing the Register Route
 
 ```js
+// app/server/routes/user.js
 router.post('/register', function(req, res, next) {
   User.userCheck(req.body.username, function(err, user){
     if (err) {
@@ -40,6 +41,7 @@ router.post('/register', function(req, res, next) {
     let newUser = new User(req.body)
     // Save user
     newUser.save().then(function(user) {
+      // create token
       let token = jwt.sign({id: user._id}, 'shhhhhhared-secret', {
         expiresIn : 60 * 3
       });
@@ -56,6 +58,7 @@ router.post('/register', function(req, res, next) {
 ### Implementing the Login Route
 
 ```js
+// app/server/routes/user.js
 router.post('/login', function(req, res, next) {
   User.userCheck(req.body.username, function(err, user){
     if (err) {
@@ -74,7 +77,8 @@ router.post('/login', function(req, res, next) {
         message: 'Invalid password'
       })
     }
-
+	
+    // create token
     let token = jwt.sign({id: user._id}, 'shhhhhhared-secret', {
       expiresIn : 60 * 3
     });
@@ -87,9 +91,10 @@ router.post('/login', function(req, res, next) {
 });
 ```
 
-### Create a server and connect to mongoDB
+### Creating the server and connecting to mongoDB
 
 ```javascript
+// app/server/app.js
 function connect() {
     mongoose.connection
       .on('error', console.log)
@@ -101,50 +106,65 @@ function connect() {
 }
 ```
 
+### Adding JWT Token Verification Middleware
+
+The JWT middleware checks the JWT token received every http request from the client is valid before allowing access to the API, if the token is invalid a "401 Unauthorized" response is sent to the client.
+
+```js
+// app/server/app.js
+const jwt = require('express-jwt');
+app.use(jwt({secret: 'shhhhhhared-secret'})
+        .unless({path: ['/users/register', '/users/login', '/favicon.ico']}))
+```
+
 
 
 ## Client-side
 
 ### Defining the vue routes
 
-For routes requiring authentication, we add extra data to it to enable us identify it when the user tries to access it.
+Checking for a meta field in the global navigation guard. If a route requires authentication, check if logged in, if not redirect to login page.
 
 ```javascript
+// app/client/src/router.js
 const routes = [
     {
         path: '/',
-        name: '/',
-        component: Index
-    },
-    {
-        path: '/repository',
-        name: 'repository',
+        component: Home,
         meta: {
-            requireAuth: true,  // 添加该字段，表示进入这个路由是需要登录的
-        },
-        component: Repository
+            requireAuth: true
+        }
     },
     {
         path: '/login',
-        name: 'login',
         component: Login
+    },
+    {
+        path: '/register',
+        component: Register
     }
-];
+]
 ```
 
 Handling requests to these routes based on the meta specification
 
 ```javascript
+// app/client/src/router.js
 router.beforeEach((to, from, next) => {
-  if(to.matched.some(record => record.meta.requiresAuth)) {
-    if (store.getters.isLoggedIn) {
-      next()
-      return
+    if (to.matched.some(r => r.meta.requireAuth)) {
+        if (store.state.token) {
+            next();
+        }
+        else {
+            next({
+                path: '/login',
+                query: {redirect: to.fullPath}
+            })
+        }
     }
-    next('/login') 
-  } else {
-    next() 
-  }
+    else {
+        next();
+    }
 })
 ```
 

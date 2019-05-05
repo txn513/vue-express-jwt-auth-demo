@@ -13,9 +13,9 @@
             <mu-card-text>
                 
             </mu-card-text>
-            <mu-card-actions>
-                <mu-button flat>更多</mu-button>
-            </mu-card-actions>
+            <!-- <mu-card-actions>
+                <mu-button flat>more</mu-button>
+            </mu-card-actions> -->
         </mu-card>
     </mu-container>
 </template>
