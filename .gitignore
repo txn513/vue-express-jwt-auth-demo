@@ -1,0 +1,17 @@
+.DS_Store
+node_modules/
+/.idea/
+npm-debug.log
+.editorconfig
+dist/
+# IDEA artifacts and output dirs
+*.iml
+*.ipr
+*.iws
+.idea
+out
+test-output
+atlassian-ide-plugin.xml
+.gradletasknamecache
+package-lock.json
+
